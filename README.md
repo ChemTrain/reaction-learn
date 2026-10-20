@@ -2,7 +2,7 @@
 
 Reaction Learn is a Quizlet-style trainer for named reactions and reagents in organic chemistry. Everything is in one HTML file.
 
-**Play it here:** https://chemlearn.github.io/reaction-learn/reaction_learn.html
+**Play it here:** https://chemtrain.github.io/reaction-learn/reaction_learn.html
 
 You can also download `reaction_learn.html` and open it in any browser.
 
@@ -21,7 +21,7 @@ Descriptions, notes and mechanisms are written for this quiz. Each card links to
 
 If you use Reaction Learn in a course, a worksheet or a paper, please cite it:
 
-> Bindschaedler, Q. *Reaction Learn* (2026). ChemLearn. https://github.com/ChemLearn/reaction-learn
+> Bindschaedler, Q. *Reaction Learn* (2026). ChemTrain. https://github.com/ChemTrain/reaction-learn
 
 GitHub's **Cite this repository** button (from `CITATION.cff`) gives the same reference in APA and BibTeX.
 

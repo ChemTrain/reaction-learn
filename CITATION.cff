@@ -5,10 +5,10 @@ type: software
 authors:
   - family-names: Bindschaedler
     given-names: Quentin
-    affiliation: ChemLearn
+    affiliation: ChemTrain
 abstract: "A Quizlet-style trainer for named reactions and reagents in organic chemistry, in one HTML file."
-url: "https://chemlearn.github.io/reaction-learn/reaction_learn.html"
-repository-code: "https://github.com/ChemLearn/reaction-learn"
+url: "https://chemtrain.github.io/reaction-learn/reaction_learn.html"
+repository-code: "https://github.com/ChemTrain/reaction-learn"
 license:
   - MIT
   - CC-BY-4.0
