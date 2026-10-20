@@ -12,4 +12,6 @@ and say if you changed anything.
 
 The linked Wikipedia articles are not part of Reaction Learn and keep their own license.
 
+The ChemTrain logo (`logo.svg`, also drawn in the page header and footer) adapts the steam locomotive from [Twemoji](https://github.com/jdecked/twemoji), © Twitter, Inc and other contributors, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); the benzene-ring smoke was added for ChemTrain. If you reuse the logo, credit Twemoji as well.
+
 The code is under the MIT license; see `LICENSE`.
