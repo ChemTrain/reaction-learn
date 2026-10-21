@@ -47,7 +47,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 a { color: var(--accent); }
 
 .wrap {
-  max-width: 1160px; margin: 0 auto; display: grid; gap: 16px;
+  max-width: 1160px; margin: 0 auto; display: grid; gap: 18px;
   padding-block: 20px 56px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
@@ -193,7 +193,7 @@ h1 span { font-weight: 500; color: var(--muted); }
 .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .options.long { grid-template-columns: 1fr; }
 @media (max-width: 560px) { .options { grid-template-columns: 1fr; } }
-.opt { display: flex; align-items: center; gap: 12px; min-width: 0; text-align: left; padding: 13px 15px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; transition: border-color .15s, background .15s; }
+.opt { display: flex; align-items: center; gap: 12px; min-width: 0; text-align: left; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; transition: border-color .15s, background .15s; }
 .opt:hover:not([disabled]) { border-color: var(--accent); }
 .opt[disabled] { cursor: default; }
 .opt .key { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 6px; font: 600 12px var(--f-mono); color: var(--muted); }
@@ -649,7 +649,7 @@ function doneHTML() {
   return `<div class="panel">
       <div class="qhead"><p class="eyebrow">Set complete</p>
       <h2 class="term">All ${active.cards.length} cards mastered</h2>
-      <p class="ask">It took ${roundNo} round${roundNo === 1 ? '' : 's'}. Study again to reset this set, or pick another set.</p></div>
+      <p class="ask">It took ${roundNo} round${roundNo === 1 ? '' : 's'}. Study again to reset this set and start over, or pick another set.</p></div>
       <div class="row end"><button type="button" class="btn" id="study-again">Study again</button></div>
     </div>`;
 }
