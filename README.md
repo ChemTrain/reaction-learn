@@ -13,7 +13,7 @@ You can also download `reaction_learn.html` and open it in any browser.
 - 155 cards in 11 sets: 117 reactions (carbonyl C–C bonds, alkenes and alkynes, cross-coupling, oxidations, reductions, rearrangements, cycloadditions, functional-group conversions, arenes and heterocycles) and 38 reagents (oxidants and reductants; ylides, bases and more)
 - A reaction scheme for every card, with the bonds that break and form highlighted
 - A short mechanism for every card, with a link to the Mechanism section of its Wikipedia article
-- A Learn mode with four kinds of question (click where it reacts, pick the product, name it from the scheme, what does it do?), flashcards, and a browsable list of cards
+- A Learn mode that asks you to answer with the product (pick it from four), the name (of the reaction, or of the reagent hidden in the scheme) or a description (what it does), plus flashcards and a browsable list of cards
 
 ## Sources
 
