@@ -10,7 +10,7 @@ You can also download `reaction_learn.html` and open it in any browser.
 
 ## What's inside
 
-- 186 cards in 12 sets: 142 reactions (carbonyl C–C bonds, alkenes and alkynes, cross-coupling, oxidations, reductions, rearrangements, cycloadditions, functional-group conversions, arenes and heterocycles, radical reactions) and 44 reagents (oxidants and reductants; ylides, bases and more). Every named reaction or reagent mentioned on a card has a card of its own
+- 285 cards in 20 sets: 238 reactions (carbonyl C–C bonds, enolates and acyl anions, alkenes and alkynes, alkyne couplings and enediynes, cross-coupling, organometallic reagents, oxidations, epoxides and diols, reductions, rearrangements, cycloadditions, functional groups, acids, esters and amines, arenes, multicomponent reactions, heterocycles, silicon, phosphorus and sulfur chemistry, radical reactions) and 47 reagents (oxidants and reductants; ylides, bases and more). Every named reaction on the Organic Chemistry Portal's list has a card, and so does every named reaction or reagent mentioned on a card
 - Where another reagent would also work under the conditions shown (PCC or DMP), it is never offered as a wrong answer, and naming it counts as right
 - Some reactions give a different product under other conditions (the Fries rearrangement hot or cold, HBr with or without peroxides); the condition that decides is highlighted, and both outcomes are asked
 - A reaction scheme for every card, with the bonds that break and form highlighted
