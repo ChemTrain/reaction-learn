@@ -75,8 +75,8 @@ h1 span { font-weight: 500; color: var(--muted); }
 .tabs button { flex: none; white-space: nowrap; }
 @media (max-width: 520px) { .tabs button { padding: 7px 10px; font-size: 13.5px; } }
 .band { display: grid; gap: 8px; }
-.band .grad { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--break), var(--form)); }
-.band .keys { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; font-size: 13px; color: var(--muted); }
+.band .grad { height: 6px; border-radius: 3px; background: linear-gradient(90deg, hsl(0 72% 52%), hsl(56 80% 50%), hsl(112 55% 44%), hsl(168 60% 40%), hsl(224 62% 54%), hsl(280 52% 54%)); }  /* the ChemTrain rainbow, as in every app */
+.band .keys { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 4px 24px; font-size: 13px; color: var(--muted); }
 .band .keys span { display: inline-flex; align-items: center; gap: 8px; }
 .sw { width: 22px; height: 8px; border-radius: 4px; display: inline-block; }
 .sw.r { background: var(--break); } .sw.f { background: var(--form); }
