@@ -10,11 +10,12 @@ You can also download `reaction_learn.html` and open it in any browser.
 
 ## What's inside
 
-- 172 cards in 12 sets: 132 reactions (carbonyl C–C bonds, alkenes and alkynes, cross-coupling, oxidations, reductions, rearrangements, cycloadditions, functional-group conversions, arenes and heterocycles, radical reactions) and 40 reagents (oxidants and reductants; ylides, bases and more)
+- 186 cards in 12 sets: 142 reactions (carbonyl C–C bonds, alkenes and alkynes, cross-coupling, oxidations, reductions, rearrangements, cycloadditions, functional-group conversions, arenes and heterocycles, radical reactions) and 44 reagents (oxidants and reductants; ylides, bases and more). Every named reaction or reagent mentioned on a card has a card of its own
+- Where another reagent would also work under the conditions shown (PCC or DMP), it is never offered as a wrong answer, and naming it counts as right
 - Some reactions give a different product under other conditions (the Fries rearrangement hot or cold, HBr with or without peroxides); the condition that decides is highlighted, and both outcomes are asked
 - A reaction scheme for every card, with the bonds that break and form highlighted
 - A short mechanism for every card, with a link to the Mechanism section of its Wikipedia article
-- A Learn mode that asks you to answer with the product (pick it from four), the name (of the reaction, or of the reagent hidden in the scheme) or a description (what it does), plus flashcards and a browsable list of cards
+- A Learn mode that asks you to answer with the product (pick it from four), the name (of the reaction, or of the reagent hidden in the scheme) or a description (what it does), plus flashcards and a browsable list of cards with a search across all sets
 
 ## Sources
 
