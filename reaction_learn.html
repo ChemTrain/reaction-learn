@@ -143,6 +143,12 @@ h1 span { font-weight: 500; color: var(--muted); }
 /* question panel */
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: clamp(18px, 3.5vw, 28px); display: grid; gap: 18px; min-width: 0; }
 .qhead { display: grid; gap: 8px; min-width: 0; }
+.star { border: 0; background: none; padding: 0 2px; font-size: 19px; line-height: 1; color: var(--muted); cursor: pointer; }
+.star:hover, .tile .tstar:hover { color: var(--warn); }
+.star[aria-pressed="true"], .tile .tstar[aria-pressed="true"] { color: var(--warn); }
+.qtop-r { display: inline-flex; align-items: center; gap: 8px; }
+.tile { position: relative; }
+.tile .tstar { position: absolute; top: 6px; right: 8px; z-index: 1; font-size: 18px; line-height: 1; color: var(--muted); }
 .qtop { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .term { margin: 0; font: 700 clamp(26px, 4.6vw, 36px)/1.12 var(--f-display); letter-spacing: -0.01em; text-wrap: balance; overflow-wrap: anywhere; }
 .ask { margin: 0; font-size: 15px; color: var(--muted); }
@@ -288,6 +294,9 @@ h2.sec { margin: 0; font: 700 24px/1.15 var(--f-display); }
       <div class="field" data-for="learn" data-needs="name">Answers
         <div class="seg" role="group" aria-label="Answers" data-opt="qtype"><button type="button" data-val="mixed" title="Multiple choice until a card is familiar, then typed">Mixed</button><button type="button" data-val="mc">Choices</button><button type="button" data-val="written">Typed</button></div>
       </div>
+      <div class="field" data-for="learn flashcards">Ask
+        <div class="seg" role="group" aria-label="Ask" data-opt="ask"><button type="button" data-val="all" title="Every card, mastered or not">All cards</button><button type="button" data-val="new" title="Only the cards you have not mastered yet">Not mastered</button></div>
+      </div>
       <div class="field" data-for="learn">Card order
         <div class="seg" role="group" aria-label="Card order" data-opt="shuffle"><button type="button" data-val="true">Shuffled</button><button type="button" data-val="false">Set order</button></div>
       </div>
@@ -325,6 +334,7 @@ h2.sec { margin: 0; font: 700 24px/1.15 var(--f-display); }
         </div>
         <div class="row">
           <button class="btn ghost small" id="fc-shuffle" type="button" aria-pressed="false">Shuffle</button>
+          <button class="btn ghost small" id="fc-star" type="button" data-star="" data-label="1">☆ Add to My cards</button>
           <span class="help">Space flips the card. The arrow keys move between cards.</span>
         </div>
       </section>
@@ -429,9 +439,47 @@ function miniScheme(c) {
 /* ---------- sets and state ---------- */
 const SETS = DATA.sets.map(s => ({ ...s, cards: s.cards.map(c => ({ ...c, id: c.name })) }));
 // the whole pool comes first and is the default
-const PICK = [{ id: 'all', group: '', name: 'All reactions and reagents', cards: SETS.flatMap(s => s.cards) }, ...SETS];
+const MINE = { id: 'mine', group: '', name: 'My cards', mine: true, desc: 'The cards you starred (☆).', cards: [] };
+const PICK = [{ id: 'all', group: '', name: 'All reactions and reagents', desc: 'Every named reaction and reagent in Reaction Learn.', cards: SETS.flatMap(s => s.cards) }, MINE, ...SETS];
+const BY_ID = new Map(PICK[0].cards.map(c => [c.id, c]));
+/* ---------- my cards: the star on a card puts it in My cards ---------- */
+const stars = new Set(store.get('rxn.stars') || []);
+const starOn = id => stars.has(id);
+const starTitle = id => starOn(id) ? 'Remove from My cards' : 'Add to My cards';
+// a span inside card tiles (they are buttons themselves), a button everywhere else
+const starHTML = (id, tag = 'button') => `<${tag} ${tag === 'button' ? 'type="button" class="star"' : 'class="tstar"'} data-star="${esc(id)}" aria-pressed="${starOn(id)}" title="${starTitle(id)}">${starOn(id) ? '★' : '☆'}</${tag}>`;
+function paintStar(el) {
+  const on = starOn(el.dataset.star);
+  el.setAttribute('aria-pressed', String(on));
+  el.title = starTitle(el.dataset.star);
+  el.textContent = el.dataset.label ? (on ? '★ In My cards' : '☆ Add to My cards') : on ? '★' : '☆';
+}
+function toggleStar(id) {
+  if (!stars.delete(id)) stars.add(id);
+  store.set('rxn.stars', [...stars]);
+  for (const el of document.querySelectorAll('[data-star]')) if (el.dataset.star === id) paintStar(el);
+  refreshMine();
+}
+// in the capture phase, so a star inside a card tile does not also open the card
+document.addEventListener('click', e => {
+  const s = e.target.closest('[data-star]');
+  if (!s || !s.dataset.star) return;
+  e.preventDefault(); e.stopPropagation();
+  toggleStar(s.dataset.star);
+}, true);
+const emptyMineHTML = s => `<button type="button" class="set" disabled title="Star a card (☆) in Learn, Flashcards or Cards to add it here">
+        <span class="nm">${esc(s.name)}</span>
+        <span class="meta"><span>Star cards (☆) to add them here</span></span>
+      </button>`;
+function refreshMine() {
+  MINE.cards = [...stars].map(id => BY_ID.get(id)).filter(Boolean);
+  if (active === MINE && !MINE.cards.length) return selectSet('all');
+  if (active === MINE) makeOrder();  // the next round uses the new list
+  renderSets();
+}
+MINE.cards = [...stars].map(id => BY_ID.get(id)).filter(Boolean);
 const DIRS = ['product', 'name', 'does'];  // "all" takes them in turn
-const settings = Object.assign({ dir: 'all', qtype: 'mixed', shuffle: true }, store.get('rxn.settings') || {});
+const settings = Object.assign({ dir: 'all', qtype: 'mixed', shuffle: true, ask: 'all' }, store.get('rxn.settings') || {});
 if (!settings.allDir || ![...DIRS, 'all'].includes(settings.dir)) { settings.dir = 'all'; settings.allDir = true; }  // "All" is the new default
 // "All" takes the question types in turn
 let dirTurn = Math.floor(Math.random() * DIRS.length);
@@ -456,11 +504,12 @@ const loadLevels = () => levels;
 const saveSettings = () => store.set('rxn.settings', settings);
 function saveLevels() { store.set('rxn.levels', levels); renderSets(); }
 function saveRound() { store.set('rxn.round.' + active.id, roundNo); }
-function makeOrder() { order = settings.shuffle ? shuffle(active.cards) : active.cards.slice(); }
+let passSeen = new Set();  // cards asked in this pass, when Ask is All cards
+function makeOrder() { order = settings.shuffle ? shuffle(active.cards) : active.cards.slice(); passSeen = new Set(); }
 const kindLabel = c => c.kind === 'reagent' ? 'Reagent' : 'Named reaction';
 
 function selectSet(id) {
-  active = PICK.find(s => s.id === id) || PICK[0];
+  active = PICK.find(s => s.id === id && s.cards.length) || PICK[0];
   store.set('rxn.pick', active.id);
   levels = loadLevels(active.id);
   roundNo = store.get('rxn.round.' + active.id) || 1;
@@ -472,12 +521,13 @@ function renderSets() {
   let html = '', group = '';
   for (const s of PICK) {
     if (s.group !== group) { group = s.group; html += `<p class="group-h">${esc(group)}</p>`; }
+    if (s.mine && !s.cards.length) { html += emptyMineHTML(s); continue; }
     const lv = s === active ? levels : loadLevels(s.id);
     const n = s.cards.length, m = s.cards.filter(c => (lv[c.id] || 0) === 3).length;
     const share = n ? m / n * 100 : 0;
     html += `<button type="button" class="set" data-set="${s.id}" aria-pressed="${s === active}">
         <span class="nm">${esc(s.name)}</span>
-        <span class="meta"><span>${n} cards</span><span>${Math.round(share)}% mastered</span></span>
+        <span class="meta"><span>${n} card${n === 1 ? '' : 's'}</span><span>${Math.round(share)}% mastered</span></span>
         <span class="mini"><i style="width:${share}%"></i></span>
       </button>`;
   }
@@ -490,9 +540,14 @@ $('#sets').addEventListener('click', e => {
 
 /* ---------- learn ---------- */
 function startRound() {
-  const pending = order.filter(c => lvl(c.id) < 3);
+  let pending = order.filter(c => lvl(c.id) < 3);
+  if (settings.ask === 'all') {  // every card once per pass, mastered ones too
+    pending = order.filter(c => !passSeen.has(c.id));
+    if (!pending.length) { makeOrder(); pending = order; }
+  }
   if (!pending.length) { phase = 'done'; round = null; renderLearn(); return; }
   const pick = pending.slice(0, ROUND_SIZE);
+  for (const c of pick) passSeen.add(c.id);
   round = { queue: settings.shuffle ? shuffle(pick) : pick, i: 0, results: [] };
   buildQuestion(round.queue[0]);
 }
@@ -501,7 +556,7 @@ function distractors(card, n, field) {
   const seen = new Set([nameKey(card[field])]);
   const also = new Set(card.also || []);  // reagents that would work here too are not wrong answers
   const pool = [];
-  for (const c of shuffle(active.cards)) {
+  for (const c of shuffle(active.mine ? PICK[0].cards : active.cards)) {  // My cards borrows wrong answers from every set
     const k = nameKey(c[field]);
     if (c === card || also.has(c.name) || seen.has(k)) continue;
     seen.add(k); pool.push(c);
@@ -592,7 +647,7 @@ const clueHTML = c => `<figure class="figure">${schemeHTML(c, true)}</figure>`;
 function questionHTML() {
   const c = cur.card, r = cur.result, isReagent = c.kind === 'reagent';
   const shown = r ? r.before : lvl(c.id);
-  const top = `<div class="qtop"><p class="eyebrow">${kindLabel(c)}</p><span class="pill" data-l="${shown}">${LEVEL_NAMES[shown]}</span></div>`;
+  const top = `<div class="qtop"><p class="eyebrow">${kindLabel(c)}</p><span class="qtop-r">${starHTML(c.id)}<span class="pill" data-l="${shown}">${LEVEL_NAMES[shown]}</span></span></div>`;
   let head;
   if (cur.type === 'prod') {
     const ask = cur.answered
@@ -706,7 +761,7 @@ $('#learn-box').addEventListener('click', e => {
 $('#learn-box').addEventListener('submit', e => { e.preventDefault(); submitWritten(false); });
 
 /* options: each [data-opt] button group sets one setting */
-const OPT_VALUE = { dir: v => v, qtype: v => v, shuffle: v => v === 'true' };
+const OPT_VALUE = { dir: v => v, qtype: v => v, shuffle: v => v === 'true', ask: v => v };
 // Grey out what the current tab does not use ([data-for]); Answers only matters for "Name" ([data-needs]).
 function syncOptions() {
   for (const g of document.querySelectorAll('.optbar [data-opt]'))
@@ -727,6 +782,7 @@ document.querySelector('.optbar').addEventListener('click', e => {
   settings[key] = val; saveSettings(); syncOptions();
   if (key === 'dir' || key === 'qtype') refreshQuestion();
   if (key === 'shuffle') makeOrder();
+  if (key === 'ask') { makeOrder(); startRound(); fcInit(); renderFC(false); }
 });
 const resetBtn = $('#reset-progress');
 resetBtn.addEventListener('click', () => {
@@ -741,10 +797,19 @@ resetBtn.addEventListener('click', () => {
 
 /* ---------- flashcards ---------- */
 const fc = { order: [], i: 0, flipped: false, shuffled: false };
-function fcInit() { fc.order = fc.shuffled ? shuffle(active.cards) : active.cards.slice(); fc.i = 0; fc.flipped = false; }
+function fcInit() {
+  const base = settings.ask === 'new' ? active.cards.filter(c => lvl(c.id) < 3) : active.cards;
+  fc.order = fc.shuffled ? shuffle(base) : base.slice(); fc.i = 0; fc.flipped = false;
+}
 function renderFC(anim) {
   const c = fc.order[fc.i], el = $('#fc-card');
-  if (!c) return;
+  const sb = $('#fc-star'); if (sb) { sb.dataset.star = c ? c.id : ''; sb.disabled = !c; if (c) paintStar(sb); }
+  if (!c) {
+    el.classList.remove('flipped');
+    el.innerHTML = '<span class="hint">' + (settings.ask === 'new' && active.cards.length ? 'Every card in this set is mastered. Set Ask to All cards to see them again.' : 'This set has no cards yet.') + '</span>';
+    $('#fc-count').textContent = '0 / 0';
+    return;
+  }
   el.classList.toggle('flipped', fc.flipped);
   if (fc.flipped) {
     const pic = c.kind === 'reagent' && c.mol != null ? `<span class="fc-mol">${molSVG(c.mol, 1.2, 130)}</span>` : '';
@@ -759,8 +824,8 @@ function renderFC(anim) {
   if (anim) { el.classList.remove('anim'); void el.offsetWidth; el.classList.add('anim'); }
   $('#fc-count').textContent = `${fc.i + 1} / ${fc.order.length}`;
 }
-const fcFlip = () => { fc.flipped = !fc.flipped; renderFC(true); };
-const fcMove = d => { fc.i = (fc.i + d + fc.order.length) % fc.order.length; fc.flipped = false; renderFC(false); };
+const fcFlip = () => { if (!fc.order.length) return; fc.flipped = !fc.flipped; renderFC(true); };
+const fcMove = d => { if (!fc.order.length) return; fc.i = (fc.i + d + fc.order.length) % fc.order.length; fc.flipped = false; renderFC(false); };
 $('#fc-card').addEventListener('click', e => { if (!e.target.closest('a')) fcFlip(); });
 $('#fc-prev').addEventListener('click', () => fcMove(-1));
 $('#fc-next').addEventListener('click', () => fcMove(1));
@@ -771,8 +836,12 @@ $('#fc-shuffle').addEventListener('click', e => {
   fcInit(); renderFC(false);
 });
 function openCard(id) {
-  const k = fc.order.findIndex(c => c.id === id);
-  if (k < 0) return;
+  let k = fc.order.findIndex(c => c.id === id);
+  if (k < 0) {  // left out by Ask: Not mastered, but asked for by name
+    const c = active.cards.find(c => c.id === id);
+    if (!c) return;
+    fc.order.splice(fc.i, 0, c); k = fc.i;
+  }
   fc.i = k; fc.flipped = true;
   show('flashcards');
 }
@@ -790,7 +859,7 @@ function renderCards() {
   $('#tiles').innerHTML = hits.map(([t, c]) => {
     const lv = t === active ? lvl(c.id) : (loadLevels(t.id)[c.id] || 0);
     const thumb = `<span class="thumb">${c.kind === 'reagent' && c.mol != null ? molSVG(c.mol, .8, 88, 220) : miniScheme(c)}</span>`;
-    return `<button type="button" class="tile${thumb ? '' : ' nomol'}${q ? ' found' : ''}" data-card="${esc(c.id)}" data-set="${t.id}" title="Open as a flashcard">${thumb}
+    return `<button type="button" class="tile${thumb ? '' : ' nomol'}${q ? ' found' : ''}" data-card="${esc(c.id)}" data-set="${t.id}" title="Open as a flashcard">${starHTML(c.id, 'span')}${thumb}
         <span class="tname"><span>${esc(c.name)}</span><i class="dot l${lv}" title="${LEVEL_NAMES[lv]}"></i></span>
         ${q ? `<span class="tset">${esc(t.name)}</span>` : ''}<span class="tdoes">${esc(c.does)}</span>
       </button>`;
