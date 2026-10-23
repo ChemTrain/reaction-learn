@@ -428,6 +428,8 @@ function miniScheme(c) {
 
 /* ---------- sets and state ---------- */
 const SETS = DATA.sets.map(s => ({ ...s, cards: s.cards.map(c => ({ ...c, id: c.name })) }));
+// the whole pool comes first and is the default
+const PICK = [{ id: 'all', group: '', name: 'All reactions and reagents', cards: SETS.flatMap(s => s.cards) }, ...SETS];
 const DIRS = ['product', 'name', 'does'];
 const settings = Object.assign({ dir: 'product', qtype: 'mixed', shuffle: true }, store.get('rxn.settings') || {});
 if (!DIRS.includes(settings.dir)) settings.dir = 'product';  // "Where it reacts" was removed
@@ -444,8 +446,8 @@ function makeOrder() { order = settings.shuffle ? shuffle(active.cards) : active
 const kindLabel = c => c.kind === 'reagent' ? 'Reagent' : 'Named reaction';
 
 function selectSet(id) {
-  active = SETS.find(s => s.id === id) || SETS[0];
-  store.set('rxn.active', active.id);
+  active = PICK.find(s => s.id === id) || PICK[0];
+  store.set('rxn.pick', active.id);
   levels = loadLevels(active.id);
   roundNo = store.get('rxn.round.' + active.id) || 1;
   makeOrder(); fcInit(); startRound();
@@ -454,7 +456,7 @@ function selectSet(id) {
 
 function renderSets() {
   let html = '', group = '';
-  for (const s of SETS) {
+  for (const s of PICK) {
     if (s.group !== group) { group = s.group; html += `<p class="group-h">${esc(group)}</p>`; }
     const lv = s === active ? levels : loadLevels(s.id);
     const n = s.cards.length, m = s.cards.filter(c => (lv[c.id] || 0) === 3).length;
@@ -823,7 +825,7 @@ document.addEventListener('keydown', e => {
 });
 
 /* ---------- boot ---------- */
-selectSet(store.get('rxn.active') || SETS[0].id);
+selectSet(store.get('rxn.pick') || 'all');
 const start = (location.hash || '').slice(1);
 show(['learn', 'flashcards', 'cards'].includes(start) ? start : 'learn');
 </script>
