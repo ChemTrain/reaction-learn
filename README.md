@@ -15,7 +15,7 @@ You can also download `reaction_learn.html` and open it in any browser.
 - Some reactions give a different product under other conditions (the Fries rearrangement hot or cold, HBr with or without peroxides); the condition that decides is highlighted, and both outcomes are asked
 - A reaction scheme for every card, with the bonds that break and form highlighted
 - A short mechanism for every card, with a link to the Mechanism section of its Wikipedia article
-- A Learn mode that asks you to answer with the product (pick it from four), the name (of the reaction, or of the reagent hidden in the scheme) or a description (what it does), plus flashcards and a browsable list of cards with a search across all sets
+- A Learn mode that asks you to answer with the product (pick it from four), the conditions (pick them from four), the name (of the reaction, or of the reagent hidden in the scheme) or a description (what it does), plus flashcards and a browsable list of cards with a search across all sets
 
 ## Sources
 
