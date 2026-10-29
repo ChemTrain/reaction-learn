@@ -16,6 +16,7 @@ You can also download `reaction_learn.html` and open it in any browser.
 - A reaction scheme for every card, with the bonds that break and form highlighted
 - A short mechanism for every card, with a link to the Mechanism section of its Wikipedia article
 - A Learn mode that asks you to answer with the product (pick it from four), the conditions (pick them from four), the name (of the reaction, or of the reagent hidden in the scheme) or a description (what it does), plus flashcards and a browsable list of cards with a search across all sets
+- Which is which: 14 families of four related reagents (metathesis catalysts, hypervalent iodine, Cr(VI) oxidants, hydrides, diazo, olefination, fluorinating and triflating reagents, amide bases, oxidants, azodicarboxylates, coupling and radical reagents), drawn side by side; name each one, then see what tells them apart
 
 ## Sources
 
