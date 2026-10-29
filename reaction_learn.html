@@ -843,7 +843,9 @@ function syncOptions() {
     for (const c of el.querySelectorAll('button')) c.disabled = !(inTab && needed);
   }
 }
-function refreshQuestion() { if (phase === 'question' && cur && !cur.answered) buildQuestion(cur.card); }
+// A new question type or answer direction applies at once: an unanswered question is asked again the new way,
+// an answered one gives way to the next question
+function refreshQuestion() { if (phase === 'question' && cur) cur.answered ? advance() : buildQuestion(cur.card); }
 document.querySelector('.optbar').addEventListener('click', e => {
   const b = e.target.closest('[data-opt] button');
   if (!b) return;
