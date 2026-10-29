@@ -582,13 +582,21 @@ function startRound() {
   buildQuestion(round.queue[0]);
 }
 
+const SET_OF = new Map(SETS.flatMap(s => s.cards.map(c => [c.id, s.id])));
+// Wrong answers are of the card's own kind (reagents for a reagent, named reactions for a reaction), from its own
+// set first; My cards and the whole pool borrow the rest from every set.
 function distractors(card, n, field) {
   const seen = new Set([nameKey(card[field])]);
   const also = new Set(card.also || []);  // reagents that would work here too are not wrong answers
+  const kin = cards => cards.filter(c => c.kind === card.kind);
+  let from = kin(active.mine ? PICK[0].cards : active.cards);
+  if (from.length <= n) from = kin(PICK[0].cards);
+  from = shuffle(from);
+  const near = c => SET_OF.get(c.id) === SET_OF.get(card.id);
   const pool = [];
-  for (const c of shuffle(active.mine ? PICK[0].cards : active.cards)) {  // My cards borrows wrong answers from every set
+  for (const c of [...from.filter(near), ...from.filter(c => !near(c))]) {
     const k = nameKey(c[field]);
-    if (c === card || also.has(c.name) || seen.has(k)) continue;
+    if (c === card || also.has(c.name) || (c.also || []).includes(card.name) || seen.has(k)) continue;
     seen.add(k); pool.push(c);
   }
   return pool.slice(0, n);
