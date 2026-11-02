@@ -16,7 +16,7 @@ You can also download `reaction_learn.html` and open it in any browser.
 - A reaction scheme for every card, with the bonds that break and form highlighted
 - A short mechanism for every card, with a link to the Mechanism section of its Wikipedia article
 - A Learn mode that asks you to answer with the product (pick it from four), the conditions (pick them from four), the name (of the reaction, or of the reagent hidden in the scheme) or a description (what it does), plus flashcards and a browsable list of cards with a search across all sets
-- Draw: draw the product yourself on a sketch pad. The drawing is compared with the product, stereochemistry included where the product has it; for a racemic product either enantiomer counts, and counter-ions may be left out. Products with an R group are picked from four instead
+- Draw: draw the product yourself on a sketch pad, which starts with the starting materials (and a reagent that brings atoms, such as mCPBA or NBS) for you to change. The drawing is compared with the product, stereochemistry included where the product has it; for a racemic product either enantiomer counts, and counter-ions may be left out. Products with an R group are picked from four instead
 - Click a reagent in the conditions (Eschenmoser's salt, Koser's reagent, DBU, NMO and 68 more) to see its structure
 - Which is which: 14 families of four related reagents (metathesis catalysts, hypervalent iodine, Cr(VI) oxidants, hydrides, diazo, olefination, fluorinating and triflating reagents, amide bases, oxidants, azodicarboxylates, coupling and radical reagents), drawn side by side; name each one, then see what tells them apart
 
