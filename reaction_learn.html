@@ -253,9 +253,22 @@ h1 span { font-weight: 500; color: var(--muted); }
 .drawn .pic { max-width: 100%; padding: 6px; border: 1px solid var(--line); border-radius: 10px; background: #FFFFFF; overflow-x: auto; }
 .drawn .pic svg { display: block; }
 /* a reagent in the conditions: click it to see its structure */
-.rg { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; text-decoration: underline dotted; text-decoration-color: var(--muted); text-underline-offset: 3px; }
-.rg:hover, .rg[aria-expanded="true"] { color: var(--accent); text-decoration-color: currentColor; }
-.rg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.rg { position: relative; padding: 0 2px; border: 0; border-radius: 5px; background: none; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; text-decoration: underline dotted 1.5px; text-underline-offset: 3px; }
+/* a small benzene ring after the name: "this one has a structure" */
+.rg::after { content: ""; display: inline-block; width: 1.1em; height: 1.1em; margin-left: 2px; vertical-align: -.2em; background: currentColor;
+  -webkit-mask: var(--hex) center / contain no-repeat; mask: var(--hex) center / contain no-repeat;
+  --hex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linejoin='round'%3E%3Cpath d='M12 1.8l8.8 5.1v10.2L12 22.2l-8.8-5.1V6.9z'/%3E%3Ccircle cx='12' cy='12' r='3.6'/%3E%3C/svg%3E"); }
+.rg:hover, .rg[aria-expanded="true"] { background: var(--accent-soft); text-decoration-style: solid; }
+.rg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* when a new question shows, a stroke of colour runs twice around each clickable reagent, then fades */
+.rg .ring { position: absolute; left: -3px; top: -3px; width: calc(100% + 6px); height: calc(100% + 6px); overflow: visible; pointer-events: none; opacity: 0; filter: drop-shadow(0 0 3px var(--accent)); }
+.rg .ring rect { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 28 72; }
+@media (prefers-reduced-motion: no-preference) {
+  .rg .ring { animation: rg-fade 2.6s ease-out forwards; }
+  .rg .ring rect { animation: rg-run 2.6s cubic-bezier(.45, .05, .55, .95) forwards; }
+}
+@keyframes rg-run { to { stroke-dashoffset: -200; } }
+@keyframes rg-fade { 0% { opacity: 0; } 6%, 82% { opacity: 1; } 100% { opacity: 0; } }
 .rgpop { position: absolute; z-index: 40; display: grid; gap: 8px; justify-items: center; width: max-content; max-width: min(360px, calc(100vw - 32px)); padding: 12px 14px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 32px rgba(8, 20, 28, .2); }
 .rgpop .rgh { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; width: 100%; font-weight: 600; font-size: 14.5px; }
 .rgpop .x { border: 0; background: none; padding: 0 2px; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
@@ -338,7 +351,7 @@ h2.sec { margin: 0; font: 700 24px/1.15 var(--f-display); }
       </div>
     </div>
     <div class="optfoot">
-      <p class="help">Product shows the starting materials and hides the product; Draw has you draw it on a sketch pad, starting from the starting materials (stereochemistry counts where the product has it; not part of All); Conditions hides the conditions. Click an underlined reagent to see its structure. Which is which draws four related reagents and asks you to name each one. Answers applies to Name: Mixed questions are multiple choice until a card is familiar, then typed, and typed names forgive small spelling slips. A card is mastered after two correct answers in a row; progress is saved in this browser.</p>
+      <p class="help">Product shows the starting materials and hides the product; Draw has you draw it on a sketch pad, starting from the starting materials (stereochemistry counts where the product has it; not part of All); Conditions hides the conditions. Click a reagent shown in colour with a small ring (⌬) to see its structure. Which is which draws four related reagents and asks you to name each one. Answers applies to Name: Mixed questions are multiple choice until a card is familiar, then typed, and typed names forgive small spelling slips. A card is mastered after two correct answers in a row; progress is saved in this browser.</p>
       <div data-for="learn flashcards cards"><button class="btn ghost small" id="reset-progress" type="button">Reset progress for this set</button></div>
     </div>
   </section>
@@ -473,6 +486,18 @@ function linkReagents(html, links) {
     }
   }
   return html;
+}
+// once per question or flashcard (not when the same one is drawn again, e.g. after answering): a stroke of colour
+// runs twice around each clickable reagent (CSS, skipped under reduced motion), then the ring is removed
+let spunFor = null;
+function spinLinks(root, key) {
+  if (key === spunFor) return;
+  spunFor = key;
+  for (const b of root.querySelectorAll('.rg')) {
+    b.insertAdjacentHTML('beforeend', '<svg class="ring" aria-hidden="true"><rect width="100%" height="100%" rx="6" pathLength="100"/></svg>');
+    const ring = b.lastElementChild;
+    setTimeout(() => ring.remove(), 3000);
+  }
 }
 /* hide: put "?" in place of the reagent.
    veil: hide the product (and the highlights, which would give the answer away). */
@@ -862,6 +887,7 @@ function renderLearn() {
   closeRg(); unmountPad();
   $('#progress').innerHTML = progressHTML();
   $('#learn-box').innerHTML = phase === 'done' ? doneHTML() : phase === 'summary' ? summaryHTML() : questionHTML();
+  if (phase === 'question') spinLinks($('#learn-box'), cur);
   if (phase === 'question' && cur.type === 'draw' && !cur.answered) mountPad();
   if (phase === 'question' && !cur.answered && cur.type === 'written' && view === 'learn') {
     const inp = $('#answer-input'); if (inp) inp.focus({ preventScroll: true });
@@ -1055,6 +1081,7 @@ function renderFC(anim) {
   } else {
     el.innerHTML = `<span class="eyebrow">${c.kind === 'reagent' ? 'Which reagent?' : 'Which named reaction?'}</span>${clueHTML(c)}<span class="hint">Click to flip</span>`;
   }
+  if (!fc.flipped) spinLinks(el, c);
   el.setAttribute('aria-label', fc.flipped ? `${c.name}. Click to show the scheme.` : 'Reaction scheme. Click to show the name.');
   if (anim) { el.classList.remove('anim'); void el.offsetWidth; el.classList.add('anim'); }
   $('#fc-count').textContent = `${fc.i + 1} / ${fc.order.length}`;
