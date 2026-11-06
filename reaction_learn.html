@@ -1156,8 +1156,8 @@ function openCard(id) {
 }
 
 /* ---------- cards ---------- */
-// search: every set, matching the name, aliases, conditions and description
-const searchText = c => nameKey([c.name, ...c.aliases, ...c.cond, c.does].join(' '));
+// search: every set, matching the name, aliases, conditions, description and dedication
+const searchText = c => nameKey([c.name, ...c.aliases, ...c.cond, c.does, c.honour || ''].join(' '));
 function renderCards() {
   const s = active, q = nameKey($('#card-search').value);
   const hits = q ? SETS.flatMap(t => t.cards.filter(c => searchText(c).includes(q)).map(c => [t, c])) : s.cards.map(c => [s, c]);
@@ -1170,7 +1170,7 @@ function renderCards() {
     const thumb = `<span class="thumb">${c.kind === 'reagent' && c.mol != null ? molSVG(c.mol, .8, 88, 220) : miniScheme(c)}</span>`;
     return `<button type="button" class="tile${thumb ? '' : ' nomol'}${q ? ' found' : ''}" data-card="${esc(c.id)}" data-set="${t.id}" title="Open as a flashcard">${starHTML(c.id, 'span')}${thumb}
         <span class="tname"><span>${esc(c.name)}</span><i class="dot l${lv}" title="${LEVEL_NAMES[lv]}"></i></span>
-        ${q ? `<span class="tset">${esc(t.name)}</span>` : ''}<span class="tdoes">${esc(c.does)}</span>
+        ${q ? `<span class="tset">${esc(t.name)}</span>` : ''}<span class="tdoes">${esc(c.does)}</span>${c.honour ? `<span class="honour">${esc(c.honour)}</span>` : ''}
       </button>`;
   }).join('');
 }
