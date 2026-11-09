@@ -28,7 +28,7 @@ Descriptions, notes and mechanisms are written for this quiz. Each card links to
 
 If you use Reaction Learn in a course, a worksheet or a paper, please cite it:
 
-> Bindschaedler, Q. *Reaction Learn* (2026). ChemTrain. https://github.com/ChemTrain/reaction-learn
+> Bindschaedler, Q. P. *Reaction Learn* (2026). ChemTrain. https://github.com/ChemTrain/reaction-learn
 
 GitHub's **Cite this repository** button (from `CITATION.cff`) gives the same reference in APA and BibTeX.
 

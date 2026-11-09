@@ -4,7 +4,7 @@ title: "Reaction Learn"
 type: software
 authors:
   - family-names: Bindschaedler
-    given-names: Quentin
+    given-names: Quentin P.
     affiliation: ChemTrain
 abstract: "A Quizlet-style trainer for named reactions and reagents in organic chemistry, in one HTML file."
 url: "https://chemtrain.github.io/reaction-learn/reaction_learn.html"
