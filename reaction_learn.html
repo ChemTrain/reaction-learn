@@ -211,8 +211,8 @@ svg.ring.lab rect { stroke: var(--good); }
 .options.long { grid-template-columns: 1fr; }
 @media (max-width: 560px) { .options { grid-template-columns: 1fr; } }
 .opt { display: flex; align-items: center; gap: 12px; min-width: 0; text-align: left; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; transition: border-color .15s, background .15s; }
-.opt:hover:not([disabled]) { border-color: var(--accent); }
-.opt[disabled] { cursor: default; }
+button.opt:hover:not([disabled]) { border-color: var(--accent); }
+.opt[disabled], div.opt { cursor: default; }
 .opt .key { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 6px; font: 600 12px var(--f-mono); color: var(--muted); }
 .opt .val { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
 /* once answered, under each wrong choice: its conditions and what it does, or what these conditions give instead */
@@ -903,9 +903,36 @@ function nameLeaks(title, conds) {
 // a wrong choice of a Name or Reagent question: its own conditions and what it does; of a "What does it do?"
 // question: whose description it is
 const stepsText = steps => steps.length > 1 ? steps.map((s, i) => `${i + 1}. ${s}`).join('; ') : steps[0];
+// Every reagent the page can draw, as written in some card's conditions: the notes and the other conditions of the
+// wrong choices show them in blue, as the scheme does. Whole words only, so NaH is not found in NaHCO₃.
+const RG_TOKENS = (() => {
+  const m = new Map();
+  for (const st of SETS) for (const c of st.cards) for (const row of c.rg || []) for (const [t, k] of row || []) if (!m.has(t)) m.set(t, k);
+  return [...m].sort((a, b) => b[0].length - a[0].length);
+})();
+const WORD = /[\p{L}\p{N}₀-₉⁰-⁹]/u;
+function linkKnown(html) {
+  for (const [t, k] of RG_TOKENS) {
+    const e = esc(unitSpace(t));
+    for (let at = html.indexOf(e); at >= 0; at = html.indexOf(e, at + 1)) {
+      const before = html.slice(0, at), after = html.slice(at + e.length);
+      if (before.lastIndexOf('<') > before.lastIndexOf('>')) continue;  // inside a tag
+      if ((before.match(/<button/g) || []).length > (before.match(/<\/button>/g) || []).length) continue;  // inside a longer one
+      if (WORD.test(before.slice(-1)) || WORD.test(after.charAt(0))) continue;  // part of a longer word
+      html = before + `<button type="button" class="rg" data-rg="${k}" aria-expanded="false" title="Show the structure">${e}</button>` + after;
+      break;
+    }
+  }
+  return html;
+}
+// a card's own conditions, with its own clickable reagents
+const condsLinked = o => o.cond.map((s, i) => `${o.cond.length > 1 ? `${i + 1}. ` : ''}${linkReagents(esc(unitSpace(s)), (o.rg || [])[i])}`).join('; ');
 const whyCard = (o, long) => `<span class="why">${long ? `That is <b>${esc(o.name)}</b>.`
-  : `${o.cond && o.cond.length ? `<b>${esc(stepsText(o.cond))}</b>. ` : ''}${esc(o.does)}`}</span>`;
-const condLines = (steps, lab) => steps.map((s, i) => `<span>${steps.length > 1 ? (i + 1) + '. ' : ''}${markLab(esc(s), lab)}</span>`).join('');
+  : `${o.cond && o.cond.length ? `<b>${condsLinked(o)}</b>. ` : ''}${esc(o.does)}`}</span>`;
+const condLines = (steps, lab, link) => steps.map((s, i) => `<span>${steps.length > 1 ? (i + 1) + '. ' : ''}${markLab(link ? linkKnown(esc(unitSpace(s))) : esc(s), lab)}</span>`).join('');
+// once answered, a choice is a plain box, so the reagents in its note can be buttons
+const optOpen = (cls, i) => cur.answered ? `<div class="${cls}">` : `<button type="button" class="${cls}" data-i="${i}">`;
+const optClose = () => cur.answered ? '</div>' : '</button>';
 
 /* The clue for "name it": the scheme, with the reagent hidden as ? */
 const clueHTML = c => `<figure class="figure">${schemeHTML(c, true)}</figure>`;
@@ -954,14 +981,15 @@ function questionHTML() {
     body = '<div class="options long conds">' + cur.options.map((k, i) => {
       let cls = 'opt';
       if (cur.answered) cls += k === 0 ? ' correct' : r.chosen === i ? ' wrong' : ' dim';
-      return `<button type="button" class="${cls}" data-i="${i}" ${cur.answered ? 'disabled' : ''}><span class="key">${i + 1}</span><span class="val">${condLines(cur.conds[k], labsOf(c))}${cur.answered && k !== 0 && cur.whys && cur.whys[k] ? `<span class="why">${esc(cur.whys[k])}</span>` : ''}</span></button>`;
+      const wrongDone = cur.answered && k !== 0;
+      return `${optOpen(cls, i)}<span class="key">${i + 1}</span><span class="val">${condLines(cur.conds[k], labsOf(c), wrongDone)}${wrongDone && cur.whys && cur.whys[k] ? `<span class="why">${linkKnown(esc(cur.whys[k]))}</span>` : ''}</span>${optClose()}`;
     }).join('') + '</div>';
   } else if (cur.type === 'mc') {
     const long = cur.dir === 'does';
     body = `<div class="options${long ? ' long' : ''}">` + cur.options.map((o, i) => {
       let cls = 'opt';
       if (cur.answered) cls += o === c ? ' correct' : r.chosen === i ? ' wrong' : ' dim';
-      return `<button type="button" class="${cls}" data-i="${i}" ${cur.answered ? 'disabled' : ''}><span class="key">${i + 1}</span><span class="val">${esc(long ? o.does : o.name)}${cur.answered && o !== c ? whyCard(o, long) : ''}</span></button>`;
+      return `${optOpen(cls, i)}<span class="key">${i + 1}</span><span class="val">${esc(long ? o.does : o.name)}${cur.answered && o !== c ? whyCard(o, long) : ''}</span>${optClose()}`;
     }).join('') + '</div>';
   } else if (!cur.answered) {
     body = `<form class="written" id="written" autocomplete="off">
