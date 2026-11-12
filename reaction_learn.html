@@ -375,7 +375,7 @@ sup.us { font-size: .7em; line-height: 0; vertical-align: .5em; }
   <section class="optbar" aria-label="Options">
     <div class="optrow">
       <div class="field" data-for="learn">Answer with
-        <div class="seg" role="group" aria-label="Answer with" data-opt="dir"><button type="button" data-val="all" title="Product, conditions, name and description questions in turn">All</button><button type="button" data-val="product" title="See the starting materials and conditions; pick the product from four">Product</button><button type="button" data-val="draw" title="See the starting materials and conditions; draw the product yourself (not part of All)">Draw</button><button type="button" data-val="cond" title="See the starting materials and the product; pick the conditions from four">Conditions</button><button type="button" data-val="name" title="See the scheme; name the reaction or the hidden reagent">Name</button><button type="button" data-val="does" title="See the name; pick what it does from four descriptions">Description</button></div>
+        <div class="seg" role="group" aria-label="Answer with" data-opt="dir"><button type="button" data-val="all" title="Product, conditions, name and description questions in turn. Each button turns its own type on or off">All</button><button type="button" data-val="product" title="See the starting materials and conditions; pick the product from four">Product</button><button type="button" data-val="draw" title="See the starting materials and conditions; draw the product yourself (All does not turn it on)">Draw</button><button type="button" data-val="cond" title="See the starting materials and the product; pick the conditions from four">Conditions</button><button type="button" data-val="name" title="See the scheme; name the reaction or the hidden reagent">Name</button><button type="button" data-val="does" title="See the name; pick what it does from four descriptions">Description</button></div>
       </div>
       <div class="field" data-for="learn" data-needs="name">Answers
         <div class="seg" role="group" aria-label="Answers" data-opt="qtype"><button type="button" data-val="mixed" title="Multiple choice until a card is familiar, then typed">Mixed</button><button type="button" data-val="mc">Choices</button><button type="button" data-val="written">Typed</button></div>
@@ -690,7 +690,20 @@ const settings = Object.assign({ dir: 'all', qtype: 'mixed', shuffle: true, ask:
 if (!settings.allDir || ![...DIRS, 'draw', 'all'].includes(settings.dir)) { settings.dir = 'all'; settings.allDir = true; }  // "All" is the new default
 // "All" takes the question types in turn
 let dirTurn = Math.floor(Math.random() * DIRS.length);
-const pickDir = () => settings.dir === 'all' ? DIRS[dirTurn++ % DIRS.length] : settings.dir;
+// Answer with: any mix of the question types. Each button turns its type on or off and All turns them all on;
+// the types that are on are asked in turn. (Saved settings from before keep their single type, or all of them.)
+const DIR_ALL = DIRS, DIR_KNOWN = ['product', 'draw', 'cond', 'name', 'does'];
+if (!Array.isArray(settings.dirs) || !settings.dirs.some(d => DIR_KNOWN.includes(d)))
+  settings.dirs = settings.dir === 'all' || !DIR_KNOWN.includes(settings.dir) ? [...DIR_ALL] : [settings.dir];
+settings.dirs = DIR_KNOWN.filter(d => settings.dirs.includes(d));
+const pickDir = () => settings.dirs[dirTurn++ % settings.dirs.length];
+const dirPressed = v => v === 'all' ? DIR_ALL.every(d => settings.dirs.includes(d)) : settings.dirs.includes(v);
+// the types on after a click on v, or null when the click changes nothing (the last type on stays on)
+function toggleDir(v) {
+  const now = settings.dirs;
+  const next = DIR_KNOWN.filter(d => v === 'all' ? now.includes(d) || DIR_ALL.includes(d) : d === v ? !now.includes(d) : now.includes(d));
+  return next.length && next.join() !== now.join() ? next : null;
+}
 delete settings.structs;  // structures are always shown now
 delete settings.v;
 // One mastery record per card, shared by every set: the whole pool and its sets move together.
@@ -786,7 +799,7 @@ function distractors(card, n, field) {
 function buildQuestion(card) {
   let type;
   let dir = pickDir();
-  if (dir === 'cond' && !card.cw) dir = 'product';  // conditions that are only heat or a solvent are not asked
+  if (dir === 'cond' && !card.cw) dir = settings.dirs.find(d => d !== 'cond') || 'product';  // conditions that are only heat or a solvent are not asked
   if (dir === 'product') type = 'prod';
   else if (dir === 'draw') type = 'draw';
   else if (dir === 'cond') type = 'cond';
@@ -1052,8 +1065,9 @@ const OPT_VALUE = { dir: v => v, qtype: v => v, shuffle: v => v === 'true', ask:
 function syncOptions() {
   for (const g of document.querySelectorAll('.optbar [data-opt]'))
     for (const b of g.querySelectorAll('button')) b.setAttribute('aria-pressed', String(String(settings[g.dataset.opt]) === b.dataset.val));
+  for (const b of document.querySelectorAll('.optbar [data-opt="dir"] button')) b.setAttribute('aria-pressed', String(dirPressed(b.dataset.val)));
   for (const el of document.querySelectorAll('.optbar [data-for]')) {
-    const inTab = el.dataset.for.split(' ').includes(view), needed = !el.dataset.needs || [el.dataset.needs, 'all'].includes(settings.dir);
+    const inTab = el.dataset.for.split(' ').includes(view), needed = !el.dataset.needs || settings.dirs.includes(el.dataset.needs);
     el.classList.toggle('off', !(inTab && needed));
     el.title = !inTab ? 'Not used in this tab' : !needed ? 'Only used by “Answer with: Name”' : '';
     for (const c of el.querySelectorAll('button')) c.disabled = !(inTab && needed);
@@ -1065,6 +1079,13 @@ function refreshQuestion() { if (phase === 'question' && cur) cur.answered ? adv
 document.querySelector('.optbar').addEventListener('click', e => {
   const b = e.target.closest('[data-opt] button');
   if (!b) return;
+  if (b.closest('[data-opt]').dataset.opt === 'dir') {
+    const next = toggleDir(b.dataset.val);
+    if (!next) return;
+    settings.dirs = next; saveSettings(); syncOptions();
+    if (cur && !settings.dirs.includes(cur.dir)) refreshQuestion();  // the question showing is of a type now off
+    return;
+  }
   const key = b.closest('[data-opt]').dataset.opt, val = OPT_VALUE[key](b.dataset.val);
   if (settings[key] === val) return;
   settings[key] = val; saveSettings(); syncOptions();
